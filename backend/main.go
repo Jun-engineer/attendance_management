@@ -16,7 +16,7 @@ import (
 	"gorm.io/gorm"
 )
 
-// initEnvは.envファイルから環境変数を読み込みます
+// .envファイルから環境変数を読み込む
 func initEnv() error {
     err := godotenv.Load()
     if err != nil {

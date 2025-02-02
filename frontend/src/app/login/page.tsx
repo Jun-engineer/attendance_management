@@ -47,6 +47,11 @@ export default function LoginPage() {
     await signIn("google", { callbackUrl: "/dashboard" });
   };
 
+  // OAuth（GitHub）でログインする処理
+  const handleGitHubLogin = async () => {
+    await signIn("github", { callbackUrl: "/dashboard" });
+  };
+
   return (
     <div className="container" style={{ padding: "20px" }}>
       <h1>Attendance Management System - Login</h1>
@@ -77,6 +82,9 @@ export default function LoginPage() {
 
       {/* OAuth (Google) ログインボタン */}
       <button onClick={handleGoogleLogin}>Googleでログイン</button>
+
+      {/* OAuth (GitHub) ログインボタン */}
+      <button onClick={handleGitHubLogin}>GitHubでログイン</button>
       
       <p>
         アカウントをお持ちでない方は <Link href="/register">こちら</Link> から登録してください。

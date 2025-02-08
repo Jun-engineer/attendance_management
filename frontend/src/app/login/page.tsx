@@ -18,38 +18,37 @@ export default function LoginPage() {
   useEffect(() => {
     if (session) {
       // セッションが存在する場合は、レンダリング完了後にリダイレクトする
-      router.push("/dashboard");
+      router.push("/dashboard/");
     }
   }, [session, router]);
 
-  // Credentials（JWT認証）でログインする処理
-  const handleCredentialsLogin = async (e: React.FormEvent) => {
+  // ログインする処理
+  const handleCredentialsLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setErrorMsg("");
 
-    // next-auth の Credentials プロバイダーを利用してログイン
     const result = await signIn("credentials", {
       redirect: false,
-      email,
-      password,
-      callbackUrl: "/dashboard", // ログイン成功後のリダイレクト先
+      email: email,
+      password: password,
+      callbackUrl: "/dashboard/",
     });
 
-    if (result?.error) {
+    if (result && result.error) {
       setErrorMsg("ログインに失敗しました: " + result.error);
-    } else if (result?.ok) {
-      router.push("/dashboard");
+    } else if (result?.url) {
+      router.push(result.url);
     }
   };
 
   // OAuth（Google）でログインする処理
   const handleGoogleLogin = async () => {
-    await signIn("google", { callbackUrl: "/dashboard" });
+    await signIn("google", { callbackUrl: "/dashboard/" });
   };
 
   // OAuth（GitHub）でログインする処理
   const handleGitHubLogin = async () => {
-    await signIn("github", { callbackUrl: "/dashboard" });
+    await signIn("github", { callbackUrl: "/dashboard/" });
   };
 
   return (
@@ -87,7 +86,7 @@ export default function LoginPage() {
       <button onClick={handleGitHubLogin}>GitHubでログイン</button>
       
       <p>
-        アカウントをお持ちでない方は <Link href="/register">こちら</Link> から登録してください。
+        アカウントをお持ちでない方は <Link href="/register/">こちら</Link> から登録してください。
       </p>
     </div>
   );

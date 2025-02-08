@@ -7,7 +7,6 @@ import (
 	"strings"
 	"os"
 	"time"
-	"encoding/base64"
 
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
@@ -17,33 +16,6 @@ import (
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 )
-
-// .envファイルから環境変数を読み込む
-func initEnv() error {
-    err := godotenv.Load()
-    if err != nil {
-        return fmt.Errorf(".envファイルの読み込みに失敗しました: %v", err)
-    }
-
-    if os.Getenv("JWT_SECRET") == "" {
-        return fmt.Errorf("JWT_SECRETが.envファイルに設定されていません")
-    }
-
-    return nil
-}
-
-// init関数で環境変数を読み込む
-func init() {
-    if err := initEnv(); err != nil {
-        panic(err)
-    }
-    secretBase64 := os.Getenv("JWT_SECRET")
-    decodedSecret, err := base64.StdEncoding.DecodeString(secretBase64)
-    if err != nil {
-        panic(fmt.Sprintf("Failed to decode JWT_SECRET: %v", err))
-    }
-    secretKey = decodedSecret
-}
 
 // グローバルなDB変数
 var db *gorm.DB
@@ -63,21 +35,47 @@ func initDB() {
 	var err error
 	db, err = gorm.Open(sqlite.Open("attendance.db"), &gorm.Config{})
 	if err != nil {
-		panic(fmt.Sprintf("Failed to connect to database: %v", err))
+		fmt.Printf("Failed to connect to database: %v", err)
+		os.Exit(1)
 	}
 
 	// Userモデルのマイグレーション
 	if err := db.AutoMigrate(&User{}); err != nil {
-		panic(fmt.Sprintf("Failed to migrate database: %v", err))
+		fmt.Printf("Failed to migrate database: %v", err)
+		os.Exit(1)
 	}
 
 	fmt.Println("Database initialized successfully")
+}
+
+// .envファイルから環境変数を読み込む
+func initEnv() error {
+    err := godotenv.Load()
+    if err != nil {
+        return fmt.Errorf(".envファイルの読み込みに失敗しました: %v", err)
+    }
+
+    if os.Getenv("JWT_SECRET") == "" {
+        return fmt.Errorf("JWT_SECRETが.envファイルに設定されていません")
+    }
+
+    return nil
+}
+
+// init関数で環境変数を読み込む
+func init() {
+    if err := initEnv(); err != nil {
+        fmt.Printf("Failed to initialize environment variables: %v\n", err)
+		os.Exit(1)
+    }
+	secretKey = []byte(os.Getenv("JWT_SECRET"))
 }
 
 // JWTトークンを生成する関数
 func generateToken(email string) (string, error) {
 	claims := jwt.MapClaims{
 		"email": email,
+		"iat":   time.Now().Unix(),
 		"exp":   time.Now().Add(time.Hour * 6).Unix(), // 6時間有効
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
@@ -98,7 +96,6 @@ func authMiddleware() gin.HandlerFunc {
 		}
 
 		tokenString := cookie.Value
-		fmt.Println("Token string:", tokenString)
 
 		token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
 			// SigningMethodのチェック
@@ -109,19 +106,7 @@ func authMiddleware() gin.HandlerFunc {
 			return secretKey, nil
 		})
 
-		fmt.Println("Token:", token)
-		fmt.Println("Error:", err)
-
-		if err != nil {
-			fmt.Println("Get error code")
-			fmt.Println("Error:", err)
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token"})
-			c.Abort()
-			return
-		}
-
-		if !token.Valid {
-			fmt.Println("Token validation error")
+		if err != nil || !token.Valid {
 			fmt.Println("Token parse error:", err)
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token"})
 			c.Abort()
@@ -171,19 +156,10 @@ func loginHandler(c *gin.Context) {
 		return
 	}
 
-	// JWTをHttpOnly Cookieとして設定
-	cookie := &http.Cookie{
-		Name:     "next-auth.session-token",
-		Value:    token,
-		HttpOnly: true,
-		Secure:   false, // 開発環境ではfalse、本番環境ではtrue (HTTPS必須)
-		Path:     "/",
-		Expires:  time.Now().Add(time.Hour * 24),
-		// SameSite: http.SameSiteNoneMode,
-	}
-	http.SetCookie(c.Writer, cookie)
-
-	c.JSON(http.StatusOK, gin.H{"token": token})
+	c.JSON(http.StatusOK, gin.H{
+		"email": user.Email,
+		"token": token,
+	})
 }
 
 // ユーザー登録エンドポイント（POST /register）
@@ -204,19 +180,41 @@ func registerHandler(c *gin.Context) {
 		return
 	}
 
-	// 既存ユーザーのチェック
-	var existing User
-	if err := db.Where("email = ?", req.Email).First(&existing).Error; err == nil {
-		c.JSON(http.StatusConflict, gin.H{"error": "User already exists"})
-		return
-	}
+	// Check for an existing user (including soft-deleted ones).
+    var existing User
+    err := db.Unscoped().Where("email = ?", req.Email).First(&existing).Error
+    if err == nil {
+        // If a record exists:
+        // If it's not soft-deleted, then it is active.
+        if existing.DeletedAt.Time.IsZero() {
+            c.JSON(http.StatusConflict, gin.H{"error": "User already exists"})
+            return
+        }
+        // Otherwise, the record is soft-deleted and can be re-activated.
+        // (Option 1: Update the record with a new password and clear DeletedAt)
+        hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
+        if err != nil {
+            c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to hash password"})
+            return
+        }
+        existing.Password = string(hashedPassword)
+        // Clear the soft delete flag
+        existing.DeletedAt.Time = time.Time{}
+        existing.DeletedAt.Valid = false
+        if err := db.Unscoped().Save(&existing).Error; err != nil {
+            c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to re-register user"})
+            return
+        }
+        c.JSON(http.StatusCreated, gin.H{"message": "User re-registered successfully"})
+        return
+    }
 
-	// パスワードのハッシュ化
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to hash password"})
-		return
-	}
+	// If no record exists, create a new one.
+    hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
+    if err != nil {
+        c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to hash password"})
+        return
+    }
 
 	user := User{
 		Email:    req.Email,
@@ -231,9 +229,9 @@ func registerHandler(c *gin.Context) {
 }
 
 func changePasswordHandler(c *gin.Context) {
-    // JWTミドルウェアでセットされたusernameを取得
-    username := c.GetString("username")
-    if username == "" {
+    // JWTミドルウェアでセットされたemailを取得
+    email := c.GetString("email")
+    if email == "" {
         c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
         return
     }
@@ -249,7 +247,7 @@ func changePasswordHandler(c *gin.Context) {
 
     // ユーザー情報をDBから取得
     var user User
-    if err := db.Where("email = ?", username).First(&user).Error; err != nil {
+    if err := db.Where("email = ?", email).First(&user).Error; err != nil {
         c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
         return
     }
@@ -278,15 +276,15 @@ func changePasswordHandler(c *gin.Context) {
 }
 
 func deleteAccountHandler(c *gin.Context) {
-    // JWTミドルウェアでセットされたusernameを取得
-    username := c.GetString("username")
-    if username == "" {
+    // JWTミドルウェアでセットされたemailを取得
+    email := c.GetString("email")
+    if email == "" {
         c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
         return
     }
 
     // ユーザーを削除
-    if err := db.Where("email = ?", username).Delete(&User{}).Error; err != nil {
+    if err := db.Where("email = ?", email).Delete(&User{}).Error; err != nil {
         c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete account"})
         return
     }
@@ -301,7 +299,7 @@ func main() {
 
 	// 信頼するプロキシを設定
 	if err := r.SetTrustedProxies([]string{"127.0.0.1"}); err != nil {
-		panic(err)
+		fmt.Println("Proxy setting error: ", err)
 	}
 
 	// CORSの設定（Next.jsと通信するため）
@@ -319,13 +317,13 @@ func main() {
 	})
 
 	// エンドポイントの設定
-	r.POST("/login/", loginHandler)
-	r.POST("/register/", registerHandler)
-    r.PUT("/user/password/", authMiddleware(), changePasswordHandler)
-    r.DELETE("/user/", authMiddleware(), deleteAccountHandler)
+	r.POST("/api/login/", loginHandler)
+	r.POST("/api/register/", registerHandler)
+    r.PUT("/api/user/password/", authMiddleware(), changePasswordHandler)
+    r.DELETE("/api/user/", authMiddleware(), deleteAccountHandler)
 
 	// 保護されたエンドポイント例
-	r.GET("/protected/", authMiddleware(), func(c *gin.Context) {
+	r.GET("/api/protected/", authMiddleware(), func(c *gin.Context) {
 		email := c.GetString("email")
 		c.JSON(http.StatusOK, gin.H{"message": "You have access!", "email": email})
 	})

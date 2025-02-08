@@ -15,7 +15,7 @@ export default function Register() {
     setMessage("");
 
     try {
-      const res = await fetch("http://localhost:8080/register", {
+      const res = await fetch("/api/register/", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: email, password: password }),
@@ -29,7 +29,7 @@ export default function Register() {
         setMessage("登録成功！ログインページに移動します...");
         // 成功したら1.5秒後にログインページへリダイレクト
         setTimeout(() => {
-          router.push("/login");
+          router.push("/login/");
         }, 1500);
       }
     } catch (error) {
@@ -69,7 +69,7 @@ export default function Register() {
           </div>
         </form>
         {message && <p style={{ marginTop: "10px" }}>{message}</p>}
-        <p style={{ marginTop: "20px" }}>You already have an account? <Link href="/login">Login here</Link></p>
+        <p style={{ marginTop: "20px" }}>You already have an account? <Link href="/login/">Login here</Link></p>
         <p><Link href="/">Back to Top</Link></p>
       </div>
     </div>

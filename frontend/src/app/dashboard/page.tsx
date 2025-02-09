@@ -1,3 +1,19 @@
+/*
+  * Dashboard page
+  * This page is only accessible to authenticated users.
+  * It shows the user's profile information and a button to logout.
+  * 
+  * Features:
+  * Task Management（基本的なDB操作）
+  * Attendance Management （より複雑なDB操作、レポート生成機能、データ化）
+  * Chat Functionality （WebSocket）
+  * Email Notification （プッシュ通知）
+  * Document Management （ファイルアップロード・ダウンロード）
+  * Multilingual Support
+  * External Service Integration （Googleカレンダー、Googleドライブ）
+
+*/
+
 'use client';
 
 import { useEffect, useState } from "react";
@@ -61,6 +77,11 @@ export default function Dashboard() {
         <h1>Attendance Management System</h1>
         <p>Dashboard here</p>
         {protectedData && <p>{protectedData}</p>}
+        <p><Link href="/task/">Task Manager</Link></p>
+        <p><Link href="/attendance/">Attendance</Link></p>
+        <p><Link href="/chat/">Chat</Link></p>
+        <p><Link href="/mail/">Mail</Link></p>
+        <p><Link href="/document/">Document</Link></p>
         <p><Link href="/profile/">Profile</Link></p>
         <button onClick={handleLogout}>Logout</button>
       </div>

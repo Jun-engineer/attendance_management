@@ -3,6 +3,8 @@ package routes
 import (
     "log"
     "net/http"
+    "os"
+    "strings"
 
     "github.com/gin-gonic/gin"
     "gorm.io/gorm"
@@ -15,26 +17,34 @@ import (
 func SetupRoutes(db *gorm.DB) *gin.Engine {
     r := gin.Default()
 
-    // Set trusted proxies for the X-Forwarded-For header.
-    if err := r.SetTrustedProxies([]string{"127.0.0.1"}); err != nil {
-        // Log the error and continue with default settings.
-        log.Println("Error setting trusted proxies: ", err)
+    // Load trusted proxies from environment variable TRUSTED_PROXIES.
+    // The variable should be a comma-separated list, e.g. "127.0.0.1,192.168.0.1".
+    proxiesEnv := os.Getenv("TRUSTED_PROXIES")
+    var proxies []string
+    if proxiesEnv == "" {
+        proxies = []string{"127.0.0.1"}
+    } else {
+        // Trim spaces for each proxy.
+        for _, proxy := range strings.Split(proxiesEnv, ",") {
+            proxies = append(proxies, strings.TrimSpace(proxy))
+        }
+    }
+    if err := r.SetTrustedProxies(proxies); err != nil {
+        log.Println("Error setting trusted proxies:", err)
     }
 
-    // Setup CORS middleware.
-    r.Use(func(c *gin.Context) {
-        c.Writer.Header().Set("Access-Control-Allow-Origin", "http://localhost")
-        c.Writer.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
-        c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
-        c.Writer.Header().Set("Access-Control-Allow-Credentials", "true")
-        if c.Request.Method == "OPTIONS" {
-            c.AbortWithStatus(http.StatusNoContent)
-            return
-        }
-        c.Next()
-    })
+    // Use the extracted CORS middleware.
+    r.Use(middleware.CORSMiddleware())
 
-    // Set up auth routes.
+    // Register routes by grouping them into submodules.
+    registerAuthRoutes(r, db)
+    registerTaskRoutes(r, db)
+
+    return r
+}
+
+// registerAuthRoutes groups and registers authentication and user-related endpoints.
+func registerAuthRoutes(r *gin.Engine, db *gorm.DB) {
     auth := r.Group("/api")
     {
         auth.POST("/login/", handlers.LoginHandler(db))
@@ -49,8 +59,10 @@ func SetupRoutes(db *gorm.DB) *gin.Engine {
             })
         })
     }
+}
 
-    // Set up task routes.
+// registerTaskRoutes groups and registers task management endpoints.
+func registerTaskRoutes(r *gin.Engine, db *gorm.DB) {
     tasks := r.Group("/api/tasks", middleware.AuthMiddleware())
     {
         tasks.GET("/", handlers.GetTasksHandler(db))
@@ -58,6 +70,4 @@ func SetupRoutes(db *gorm.DB) *gin.Engine {
         tasks.DELETE("/:id", handlers.DeleteTaskHandler(db))
         tasks.PUT("/:id", handlers.UpdateTaskHandler(db))
     }
-
-    return r
 }

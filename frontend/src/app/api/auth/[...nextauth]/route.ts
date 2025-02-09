@@ -7,7 +7,7 @@ export const authOptions: NextAuthOptions = {
   debug: true,
 
   providers: [
-    // 独自認証（メール/パスワード）
+    // CredentialsProvider is used for email/password login
     CredentialsProvider({
       name: "Credentials",
       credentials: {
@@ -39,12 +39,11 @@ export const authOptions: NextAuthOptions = {
         return { id: data.email, email: data.email, token: data.token };
       },
     }),
-    // Google OAuth 認証
+    // OAuth providers
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID!,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
     }),
-    // GitHub OAuth 認証
     GithubProvider({
       clientId: process.env.GITHUB_CLIENT_ID!,
       clientSecret: process.env.GITHUB_CLIENT_SECRET!,

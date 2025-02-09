@@ -68,7 +68,6 @@ export default function ProfilePage() {
                 setDeleteMsg(data.error || "Account deletion failed");
             } else {
                 setDeleteMsg("Account deleted successfully");
-                // サインアウトしてログインページにリダイレクトする
                 signOut({ callbackUrl: "/login/" });
             }
         } catch (error) {
@@ -86,7 +85,7 @@ export default function ProfilePage() {
             <h1>Profile</h1>
             <p>Logged in as: {session.user?.email}</p>
             <button onClick={handleLogout}>Logout</button>
-            {/* パスワード変更セクション */}
+            {/* Change password section */}
             <div style={{ marginTop: "20px" }}>
                 <button onClick={() => setShowPasswordForm(!showPasswordForm)}>
                     {showPasswordForm ? "Cancel Password Change" : "Change Password"}
@@ -116,7 +115,7 @@ export default function ProfilePage() {
                 )}
                 {passwordMsg && <p>{passwordMsg}</p>}
             </div>
-            {/* アカウント削除セクション */}
+            {/* Delete account section */}
             <div style={{ marginTop: "20px" }}>
                 <button onClick={handleAccountDeletion} style={{ color: "red" }}>Delete Account</button>
                 {deleteMsg && <p>{deleteMsg}</p>}

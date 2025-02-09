@@ -26,14 +26,13 @@ export default function Dashboard() {
           headers: {
             "Content-Type": "application/json",
           },
-          credentials: "include", // Cookieを送信するために必要
+          credentials: "include", // Send cookies
         });
         
         if (!response.ok) {
           throw new Error("Failed to fetch protected data");
         }
         const data = await response.json();
-        // ここではdata.messageなどを期待
         setProtectedData(data.message);
       } catch (error) {
         console.error("Error fetching protected data:", error);

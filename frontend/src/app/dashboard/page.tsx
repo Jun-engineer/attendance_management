@@ -1,18 +1,3 @@
-/*
-  * Dashboard page
-  * This page is only accessible to authenticated users.
-  * It shows the user's profile information and a button to logout.
-  * 
-  * Features:
-  * Replace sqlite3 with PostgreSQL and Redis
-  * Chat Functionality （WebSocket）
-  * Email Notification （プッシュ通知）
-  * Document Management （ファイルアップロード・ダウンロード）
-  * Multilingual Support
-  * External Service Integration （Googleカレンダー、Googleドライブ）
-
-*/
-
 'use client';
 
 import { useEffect, useState } from "react";

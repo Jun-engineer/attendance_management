@@ -4,8 +4,9 @@
   * It shows the user's profile information and a button to logout.
   * 
   * Features:
-  * Task Management（基本的なDB操作）
+  * Replace sqlite3 with PostgreSQL and Redis
   * Attendance Management （より複雑なDB操作、レポート生成機能、データ化）
+  *   →実装中。時間修正しても画面に反映されない。
   * Chat Functionality （WebSocket）
   * Email Notification （プッシュ通知）
   * Document Management （ファイルアップロード・ダウンロード）

@@ -3,10 +3,11 @@ package config
 import (
 	"fmt"
 
+	"backend/models"
+
 	"github.com/joho/godotenv"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
-	"backend/models"
 )
 
 func InitDB() (*gorm.DB, error) {
@@ -14,8 +15,8 @@ func InitDB() (*gorm.DB, error) {
 	if err != nil {
 		return nil, err
 	}
-	
-	if err := db.AutoMigrate(&models.User{}, &models.Task{}); err != nil {
+
+	if err := db.AutoMigrate(&models.User{}, &models.Task{}, &models.Attendance{}); err != nil {
 		return nil, err
 	}
 
@@ -24,8 +25,8 @@ func InitDB() (*gorm.DB, error) {
 }
 
 func InitEnv() error {
-    if err := godotenv.Load(); err != nil {
-        return fmt.Errorf("Failed to load .env file: %v", err)
-    }
-    return nil
+	if err := godotenv.Load(); err != nil {
+		return fmt.Errorf("Failed to load .env file: %v", err)
+	}
+	return nil
 }

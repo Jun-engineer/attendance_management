@@ -1,28 +1,13 @@
-// src/app/api/auth/[...nextauth]/route.ts
 import NextAuth, { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import GoogleProvider from "next-auth/providers/google";
 import GithubProvider from "next-auth/providers/github";
 
-// 例として、ユーザー情報を取得し、パスワードを検証するユーティリティ関数
-// これらは実際のDB連携やセキュリティ要件に合わせて実装してください。
-async function getUserByEmail(email: string) {
-  // DBからユーザー情報を取得する処理を実装する
-  // 例:
-  // return await db.user.findUnique({ where: { email } });
-  return { id: "1", email, password: "$2a$10$XXXXXXXXXXXXXXXXXXXXXXXXXXXXXX" }; // 仮の値（bcryptハッシュ）  
-}
-
-async function verifyPassword(password: string, hashedPassword: string) {
-  // bcrypt などを使ってパスワードを検証する処理
-  // 例:
-  // return await bcrypt.compare(password, hashedPassword);
-  return true; // 仮実装
-}
-
 export const authOptions: NextAuthOptions = {
+  debug: true,
+
   providers: [
-    // 独自認証（メール/パスワード）
+    // CredentialsProvider is used for email/password login
     CredentialsProvider({
       name: "Credentials",
       credentials: {
@@ -30,53 +15,70 @@ export const authOptions: NextAuthOptions = {
         password: { label: "Password", type: "password" },
       },
       async authorize(credentials, req) {
-        if (!credentials?.email || !credentials?.password) {
-          throw new Error("Email and password are required");
+        // call my Gin backend login API
+        const res = await fetch("http://localhost/api/login/", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          credentials: "include",
+          body: JSON.stringify({
+            email: credentials?.email,
+            password: credentials?.password,
+          })
+        });
+        if (!res.ok) {
+          throw new Error("Failed to login");
         }
-        const user = await getUserByEmail(credentials.email);
-        if (!user) {
-          throw new Error("User not found");
-        }
-        const isValid = await verifyPassword(credentials.password, user.password);
-        if (!isValid) {
-          throw new Error("Invalid credentials");
-        }
-        // ユーザーオブジェクトを返す（ここで返した値は JWT のペイロードに保存される）  
-        return { id: user.id, email: user.email };
+
+        // The backend returns JSON which includes a JWT token and user info.
+        // For example: { email: "test@test.com", token: "..." }
+        const data = await res.json();
+
+        // Return a user object that will be saved to the NextAuth JWT
+        return { id: data.email, email: data.email, token: data.token };
       },
     }),
-    // Google OAuth 認証
+    // OAuth providers
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID!,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
     }),
-    // GitHub OAuth 認証
     GithubProvider({
-      clientId: process.env.GITHUB_CLIENT_ID || "",
-      clientSecret: process.env.GITHUB_CLIENT_SECRET || "",
+      clientId: process.env.GITHUB_CLIENT_ID!,
+      clientSecret: process.env.GITHUB_CLIENT_SECRET!,
     }),
   ],
   session: {
-    strategy: "jwt", // JWT セッションを使用する
+    strategy: "jwt",
   },
-  secret: process.env.NEXTAUTH_SECRET, // 強力な秘密鍵を設定（.env.local で設定）  
+  jwt: {
+    async encode({ token, secret }) {
+      return require("jsonwebtoken").sign(token, secret, { algorithm: "HS256" });
+    },
+    async decode({ token, secret }) {
+      return require("jsonwebtoken").verify(token, secret, { algorithms: ["HS256"] });
+    }
+  },
   callbacks: {
     async jwt({ token, user }) {
-      // 初回ログイン時に user オブジェクトが存在するので token に情報を追加する
+      // On first sign in, user will be defined
       if (user) {
-        token.id = user.id;
+        token.token = user.token; // store the backend JWT if needed
         token.email = user.email;
       }
       return token;
     },
     async session({ session, token }) {
-      if (token) {
-        session.user.id = token.id as string;
-        session.user.email = token.email as string;
+      // Make token available in the session
+      session.user = {
+        email: token.email,
+        token: token.token,
       }
       return session;
     },
   },
+  secret: process.env.NEXTAUTH_SECRET,
 };
 
 const handler = NextAuth(authOptions);

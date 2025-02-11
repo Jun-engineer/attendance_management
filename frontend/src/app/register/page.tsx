@@ -15,26 +15,24 @@ export default function Register() {
     setMessage("");
 
     try {
-      const res = await fetch("http://localhost:8080/register", {
+      const res = await fetch("/api/register/", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: email, password: password }),
       });
 
       if (!res.ok) {
-        // エラーレスポンスの内容を取得
         const errorData = await res.json();
         setMessage(errorData.error || "Registration failed");
       } else {
-        setMessage("登録成功！ログインページに移動します...");
-        // 成功したら1.5秒後にログインページへリダイレクト
+        setMessage("Registration successful! Redirecting to login page...");
         setTimeout(() => {
-          router.push("/login");
+          router.push("/login/");
         }, 1500);
       }
     } catch (error) {
       console.error("Registration error:", error);
-      setMessage("登録に失敗しました");
+      setMessage("Registration failed");
     }
   };
 
@@ -42,7 +40,7 @@ export default function Register() {
     <div className="container" style={{ padding: "20px" }}>
       <div className="content">
         <h1>Attendance Management System</h1>
-        <h2>ユーザー登録</h2>
+        <h2>User Registration</h2>
         <form onSubmit={handleRegister}>
           <div>
             <input
@@ -69,7 +67,7 @@ export default function Register() {
           </div>
         </form>
         {message && <p style={{ marginTop: "10px" }}>{message}</p>}
-        <p style={{ marginTop: "20px" }}>You already have an account? <Link href="/login">Login here</Link></p>
+        <p style={{ marginTop: "20px" }}>You already have an account? <Link href="/login/">Login here</Link></p>
         <p><Link href="/">Back to Top</Link></p>
       </div>
     </div>

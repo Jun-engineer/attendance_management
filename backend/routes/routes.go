@@ -40,6 +40,7 @@ func SetupRoutes(db *gorm.DB) *gin.Engine {
 	registerAuthRoutes(r, db)
 	registerTaskRoutes(r, db)
 	registerAttendanceRoutes(r, db)
+	registerDocumentRoutes(r)
 
 	return r
 }
@@ -82,5 +83,15 @@ func registerAttendanceRoutes(r *gin.Engine, db *gorm.DB) {
 		attendance.POST("/start", handlers.StartAttendanceHandler(db))
 		attendance.POST("/end", handlers.EndAttendanceHandler(db))
 		attendance.POST("/update", handlers.UpdateAttendanceHandler(db))
+	}
+}
+
+// registerDocumentRoutes groups and registers document management endpoints.
+func registerDocumentRoutes(r *gin.Engine) {
+	document := r.Group("/api/document")
+	{
+		document.POST("/upload", handlers.UploadDocumentHandler())
+		// Download expecting a URL like: /api/document/download/filename.ext
+		document.GET("/download/:filename", handlers.DownloadDocumentHandler())
 	}
 }

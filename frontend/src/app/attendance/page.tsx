@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import jsPDF from "jspdf";
 import "jspdf-autotable";
 
@@ -320,6 +321,9 @@ const formatTimeForPDF = (time: string | null): string => {
           </tbody>
         </table>
       </div>
+      <p style={{ marginTop: "20px" }}>
+        <Link href="/dashboard/">Back to Dashboard</Link>
+      </p>
     </div>
   );
 }

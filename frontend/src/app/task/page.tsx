@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 
 interface Task {
   ID: number;
@@ -222,6 +223,9 @@ export default function Tasks() {
       ) : (
         <p>No tasks available</p>
       )}
+      <p style={{ marginTop: "20px" }}>
+        <Link href="/dashboard/">Back to Dashboard</Link>
+      </p>
     </div>
   );
 }

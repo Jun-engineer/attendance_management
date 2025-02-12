@@ -41,6 +41,7 @@ func SetupRoutes(db *gorm.DB) *gin.Engine {
 	registerTaskRoutes(r, db)
 	registerAttendanceRoutes(r, db)
 	registerDocumentRoutes(r)
+	registerChatRoutes(r)
 
 	return r
 }
@@ -93,5 +94,14 @@ func registerDocumentRoutes(r *gin.Engine) {
 		document.POST("/upload", handlers.UploadDocumentHandler())
 		// Download expecting a URL like: /api/document/download/filename.ext
 		document.GET("/download/:filename", handlers.DownloadDocumentHandler())
+	}
+}
+
+// registerChatRoutes groups and registers the chat websocket endpoint.
+func registerChatRoutes(r *gin.Engine) {
+	// Here we group under /ws and optionally attach the auth middleware.
+	chat := r.Group("/ws")
+	{
+		chat.GET("/chat", handlers.ChatHandler)
 	}
 }

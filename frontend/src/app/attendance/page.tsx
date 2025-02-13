@@ -204,126 +204,161 @@ const formatTimeForPDF = (time: string | null): string => {
   };
 
   return (
-    <div style={{ padding: "1rem" }}>
-      <h1>Attendance Management</h1>
-      {message && <p>{message}</p>}
-
-      <div style={{ marginBottom: "1rem" }}>
-        <label>
-          Month:
-          <input
-            type="number"
-            value={selectedMonth}
-            onChange={(e) => setSelectedMonth(Number(e.target.value))}
-            min="1"
-            max="12"
-          />
-        </label>
-        <label style={{ marginLeft: "1rem" }}>
-          Year:
-          <input
-            type="number"
-            value={selectedYear}
-            onChange={(e) => setSelectedYear(Number(e.target.value))}
-          />
-        </label>
-      </div>
-
-      <div style={{ marginBottom: "1rem" }}>
-        <button onClick={handleStartWork}>Start Work</button>
-        <button onClick={handleEndWork} style={{ marginLeft: "1rem" }}>End Work</button>
-        {/* Removed the duplicate "Output to PDF" button that used window.print(). */}
-        <button onClick={handlePrintPDF} style={{ marginLeft: "1rem" }}>Output to PDF</button>
-      </div>
-
-      <div>
-        <table border={1} cellPadding={5}>
-          <thead>
-            <tr>
-              <th>Month</th>
-              <th>Date</th>
-              <th>Start Time</th>
-              <th>End Time</th>
-              <th>Overtime</th>
-              <th>Comment</th>
-              <th>Work Duration</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {getFullMonthRecords().map((record) => (
-              <tr key={record.Date}>
-                <td>{selectedMonth}</td>
-                <td>{new Date(record.Date).getDate()}</td>
-                <td>
-                  {editingRecord && editingRecord.Date === record.Date ? (
-                    <input
-                      type="time"
-                      value={editStartTime}
-                      onChange={(e) => setEditStartTime(e.target.value)}
-                    />
-                  ) : record.StartTime ? (
-                    new Date(record.StartTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-                  ) : (
-                    "-"
-                  )}
-                </td>
-                <td>
-                  {editingRecord && editingRecord.Date === record.Date ? (
-                    <input
-                      type="time"
-                      value={editEndTime}
-                      onChange={(e) => setEditEndTime(e.target.value)}
-                    />
-                  ) : record.EndTime ? (
-                    new Date(record.EndTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-                  ) : (
-                    "-"
-                  )}
-                </td>
-                <td>{record.Overtime || "-"}</td>
-                <td>
-                  {editingRecord && editingRecord.Date === record.Date ? (
-                    <input
-                      type="text"
-                      value={editComment}
-                      onChange={(e) => setEditComment(e.target.value)}
-                    />
-                  ) : (
-                    record.Comment || "-"
-                  )}
-                </td>
-                <td>
-                  {record.StartTime && record.EndTime
-                    ? (() => {
-                        const start = new Date(record.StartTime);
-                        const end = new Date(record.EndTime);
-                        const diffMs = end.getTime() - start.getTime();
-                        const diffMins = Math.floor(diffMs / 60000);
-                        const hours = Math.floor(diffMins / 60);
-                        const mins = diffMins % 60;
-                        return `${hours}h ${mins}m`;
-                      })()
-                    : "-"}
-                </td>
-                <td>
-                  {editingRecord && editingRecord.Date === record.Date ? (
-                    <>
-                      <button onClick={() => handleSaveEdit(record)}>Save</button>
-                      <button onClick={handleCancelEdit} style={{ marginLeft: "0.5rem" }}>Cancel</button>
-                    </>
-                  ) : (
-                    <button onClick={() => handleEditClick(record)}>Edit</button>
-                  )}
-                </td>
+    <div className="min-h-screen bg-gradient-to-r from-purple-900 to-blue-900 text-white p-6">
+      <div className="max-w-5xl mx-auto bg-black bg-opacity-50 rounded-lg shadow-xl p-8">
+        <h1 className="text-3xl font-bold mb-6 text-center">Attendance Management</h1>
+        {message && <p className="text-center mb-4">{message}</p>}
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-6">
+          <label className="flex items-center gap-2">
+            <span>Month:</span>
+            <input
+              type="number"
+              value={selectedMonth}
+              onChange={(e) => setSelectedMonth(Number(e.target.value))}
+              min="1"
+              max="12"
+              className="p-2 rounded-md text-black"
+            />
+          </label>
+          <label className="flex items-center gap-2">
+            <span>Year:</span>
+            <input
+              type="number"
+              value={selectedYear}
+              onChange={(e) => setSelectedYear(Number(e.target.value))}
+              className="p-2 rounded-md text-black"
+            />
+          </label>
+        </div>
+        <div className="flex items-center justify-center gap-4 mb-6">
+          <button
+            onClick={handleStartWork}
+            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-md transition"
+          >
+            Start Work
+          </button>
+          <button
+            onClick={handleEndWork}
+            className="px-4 py-2 bg-green-600 hover:bg-green-700 rounded-md transition"
+          >
+            End Work
+          </button>
+          <button
+            onClick={handlePrintPDF}
+            className="px-4 py-2 bg-yellow-600 hover:bg-yellow-700 rounded-md transition"
+          >
+            Output to PDF
+          </button>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="min-w-full bg-gray-800 bg-opacity-50 rounded-lg">
+            <thead>
+              <tr className="text-left">
+                <th className="px-4 py-2 border border-gray-400">Month</th>
+                <th className="px-4 py-2 border border-gray-400">Date</th>
+                <th className="px-4 py-2 border border-gray-400">Start Time</th>
+                <th className="px-4 py-2 border border-gray-400">End Time</th>
+                <th className="px-4 py-2 border border-gray-400">Overtime</th>
+                <th className="px-4 py-2 border border-gray-400">Comment</th>
+                <th className="px-4 py-2 border border-gray-400">Work Duration</th>
+                <th className="px-4 py-2 border border-gray-400">Actions</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {getFullMonthRecords().map((record) => (
+                <tr key={record.Date} className="border border-gray-700">
+                  <td className="px-4 py-2">{selectedMonth}</td>
+                  <td className="px-4 py-2">{new Date(record.Date).getDate()}</td>
+                  <td className="px-4 py-2">
+                    {editingRecord && editingRecord.Date === record.Date ? (
+                      <input
+                        type="time"
+                        value={editStartTime}
+                        onChange={(e) => setEditStartTime(e.target.value)}
+                        className="p-2 rounded-md text-black"
+                      />
+                    ) : record.StartTime ? (
+                      new Date(record.StartTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                    ) : (
+                      "-"
+                    )}
+                  </td>
+                  <td className="px-4 py-2">
+                    {editingRecord && editingRecord.Date === record.Date ? (
+                      <input
+                        type="time"
+                        value={editEndTime}
+                        onChange={(e) => setEditEndTime(e.target.value)}
+                        className="p-2 rounded-md text-black"
+                      />
+                    ) : record.EndTime ? (
+                      new Date(record.EndTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                    ) : (
+                      "-"
+                    )}
+                  </td>
+                  <td className="px-4 py-2">{record.Overtime || "-"}</td>
+                  <td className="px-4 py-2">
+                    {editingRecord && editingRecord.Date === record.Date ? (
+                      <input
+                        type="text"
+                        value={editComment}
+                        onChange={(e) => setEditComment(e.target.value)}
+                        className="p-2 rounded-md text-black"
+                      />
+                    ) : (
+                      record.Comment || "-"
+                    )}
+                  </td>
+                  <td className="px-4 py-2">
+                    {record.StartTime && record.EndTime
+                      ? (() => {
+                          const start = new Date(record.StartTime);
+                          const end = new Date(record.EndTime);
+                          const diffMs = end.getTime() - start.getTime();
+                          const diffMins = Math.floor(diffMs / 60000);
+                          const hours = Math.floor(diffMins / 60);
+                          const mins = diffMins % 60;
+                          return `${hours}h ${mins}m`;
+                        })()
+                      : "-"}
+                  </td>
+                  <td className="px-4 py-2">
+                    {editingRecord && editingRecord.Date === record.Date ? (
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => handleSaveEdit(record)}
+                          className="px-3 py-1 bg-blue-600 hover:bg-blue-700 rounded-md"
+                        >
+                          Save
+                        </button>
+                        <button
+                          onClick={handleCancelEdit}
+                          className="px-3 py-1 bg-red-600 hover:bg-red-700 rounded-md"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    ) : (
+                      <button
+                        onClick={() => handleEditClick(record)}
+                        className="px-3 py-1 bg-indigo-600 hover:bg-indigo-700 rounded-md"
+                      >
+                        Edit
+                      </button>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <p className="mt-6 text-center">
+          <Link href="/dashboard/" className="text-blue-500 underline">
+            Back to Dashboard
+          </Link>
+        </p>
       </div>
-      <p style={{ marginTop: "20px" }}>
-        <Link href="/dashboard/">Back to Dashboard</Link>
-      </p>
     </div>
   );
 }

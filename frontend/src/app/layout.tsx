@@ -1,21 +1,10 @@
-import { Providers } from "./providers";
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
 import "../styles/globals.css";
-
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
+import Providers from "../app/providers";
 
 export const metadata: Metadata = {
-  title: "Attendance Management System",
-  description: "Attendance Management System",
+  title: "Learning Web Application Development",
+  description: "Learning web application development.",
 };
 
 export default function RootLayout({
@@ -25,9 +14,17 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+      <body className="min-h-screen bg-gradient-to-r from-purple-900 to-blue-900 text-white">
         <Providers>
-          {children}
+          <div className="max-w-5xl mx-auto p-6">
+            <header className="flex items-center justify-center py-4">
+              <h1 className="text-4xl font-bold">Learning Web Application Development</h1>
+            </header>
+            <main className="py-8">{children}</main>
+            <footer className="text-center py-4">
+              <p className="tFext-sm">&copy; 2025 Learning Web Development. All rights reserved.</p>
+            </footer>
+          </div>
         </Providers>
       </body>
     </html>

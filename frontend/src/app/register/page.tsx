@@ -37,11 +37,12 @@ export default function Register() {
   };
 
   return (
-    <div className="container" style={{ padding: "20px" }}>
-      <div className="content">
-        <h1>Attendance Management System</h1>
-        <h2>User Registration</h2>
-        <form onSubmit={handleRegister}>
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-r from-purple-900 to-blue-900 p-6">
+      <div className="w-full max-w-md bg-black bg-opacity-50 rounded-lg shadow-xl p-8">
+        <h1 className="text-center text-2xl font-bold mb-6">
+          User Registration
+        </h1>
+        <form onSubmit={handleRegister} className="space-y-4">
           <div>
             <input
               type="text"
@@ -50,9 +51,10 @@ export default function Register() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
+              className="w-full p-3 rounded-md text-black"
             />
           </div>
-          <div style={{ marginTop: "10px" }}>
+          <div>
             <input
               type="password"
               id="password"
@@ -60,15 +62,31 @@ export default function Register() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
+              className="w-full p-3 rounded-md text-black"
             />
           </div>
-          <div style={{ marginTop: "10px" }}>
-            <button type="submit" id="registerButton">Register</button>
+          <div>
+            <button
+              type="submit"
+              id="registerButton"
+              className="w-full px-4 py-3 bg-blue-600 hover:bg-blue-700 rounded-md transition"
+            >
+              Register
+            </button>
           </div>
         </form>
-        {message && <p style={{ marginTop: "10px" }}>{message}</p>}
-        <p style={{ marginTop: "20px" }}>You already have an account? <Link href="/login/">Login here</Link></p>
-        <p><Link href="/">Back to Top</Link></p>
+        {message && <p className="mt-4 text-center">{message}</p>}
+        <p className="mt-6 text-center">
+          You already have an account?{" "}
+          <Link href="/login/">
+            <span className="text-blue-400 underline">Login here</span>
+          </Link>
+        </p>
+        <p className="mt-4 text-center">
+          <Link href="/">
+            <span className="text-blue-400 underline">Back to Top</span>
+          </Link>
+        </p>
       </div>
     </div>
   );

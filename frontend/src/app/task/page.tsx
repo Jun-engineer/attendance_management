@@ -157,75 +157,124 @@ export default function Tasks() {
   );
 
   return (
-    <div className="container">
-      <h1>Task Manager</h1>
-
-      {error && <p style={{ color: "red" }}>{error}</p>}
-
-      <form onSubmit={handleAddTask}>
-        <input
-          type="text"
-          value={newTask}
-          onChange={(e) => setNewTask(e.target.value)}
-          placeholder="Enter new task"
-          required
-        />
-        <button type="submit">Add Task</button>
-      </form>
-
-      <div style={{ marginTop: "20px" }}>
-        <button onClick={() => setActiveTab("working")} disabled={activeTab === "working"}>
-          Working Tasks
-        </button>
-        <button onClick={() => setActiveTab("completed")} disabled={activeTab === "completed"}>
-          Completed Tasks
-        </button>
-      </div>
-
-      <h2 style={{ marginTop: "20px" }}>
-        {activeTab === "working" ? "Working Tasks" : "Completed Tasks"}
-      </h2>
-      {filteredTasks && filteredTasks.length > 0 ? (
-        <ul>
-          {filteredTasks.map((task) => (
-            <li key={task.ID}>
-              <input
-                type="checkbox"
-                checked={task.Completed}
-                onChange={() => toggleCompleted(task)}
-              />{" "}
-              {editingId === task.ID ? (
-                <form onSubmit={handleEditTask} style={{ display: "inline" }}>
+    <div className="min-h-screen bg-gradient-to-r from-purple-900 to-blue-900 text-white flex items-center justify-center p-4">
+      <div className="w-full max-w-3xl bg-black bg-opacity-50 rounded-lg shadow-xl p-8">
+        <h1 className="text-3xl font-bold mb-6 text-center">Task Manager</h1>
+        {error && <p className="mb-4 text-center text-red-500">{error}</p>}
+        <form onSubmit={handleAddTask} className="flex gap-4 mb-6">
+          <input
+            type="text"
+            value={newTask}
+            onChange={(e) => setNewTask(e.target.value)}
+            placeholder="Enter new task"
+            required
+            className="flex-grow p-2 rounded-md text-black"
+          />
+          <button
+            type="submit"
+            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-md transition"
+          >
+            Add Task
+          </button>
+        </form>
+        <div className="flex gap-4 justify-center mb-6">
+          <button
+            onClick={() => setActiveTab("working")}
+            disabled={activeTab === "working"}
+            className={`px-4 py-2 rounded-md transition ${
+              activeTab === "working"
+                ? "bg-blue-600"
+                : "bg-gray-600 hover:bg-gray-700"
+            }`}
+          >
+            Working Tasks
+          </button>
+          <button
+            onClick={() => setActiveTab("completed")}
+            disabled={activeTab === "completed"}
+            className={`px-4 py-2 rounded-md transition ${
+              activeTab === "completed"
+                ? "bg-green-600"
+                : "bg-gray-600 hover:bg-gray-700"
+            }`}
+          >
+            Completed Tasks
+          </button>
+        </div>
+        <h2 className="text-2xl font-semibold mb-4 text-center">
+          {activeTab === "working" ? "Working Tasks" : "Completed Tasks"}
+        </h2>
+        {filteredTasks && filteredTasks.length > 0 ? (
+          <ul className="space-y-4">
+            {filteredTasks.map((task) => (
+              <li
+                key={task.ID}
+                className="flex items-center justify-between bg-gray-800 bg-opacity-50 p-4 rounded-md"
+              >
+                <div className="flex items-center gap-2">
                   <input
-                    type="text"
-                    value={editingTitle}
-                    onChange={(e) => setEditingTitle(e.target.value)}
+                    type="checkbox"
+                    checked={task.Completed}
+                    onChange={() => toggleCompleted(task)}
+                    className="form-checkbox h-5 w-5 text-blue-600"
                   />
-                  <button type="submit">Save</button>
-                  <button type="button" onClick={cancelEditing}>
-                    Cancel
-                  </button>
-                </form>
-              ) : (
-                <>
-                  {task.Title}{" "}
-                  <button onClick={() => startEditing(task.ID, task.Title)}>
-                    Edit
-                  </button>{" "}
-                  <button onClick={() => handleDeleteTask(task.ID)}>
-                    Delete
-                  </button>
-                </>
-              )}
-            </li>
-          ))}
-        </ul>
-      ) : (
-        <p>No tasks available</p>
-      )}
-      <p style={{ marginTop: "20px" }}>
-        <Link href="/dashboard/">Back to Dashboard</Link>
-      </p>
+                  {editingId === task.ID ? (
+                    <form onSubmit={handleEditTask} className="flex gap-2">
+                      <input
+                        type="text"
+                        value={editingTitle}
+                        onChange={(e) => setEditingTitle(e.target.value)}
+                        className="p-2 rounded-md text-black"
+                      />
+                      <button
+                        type="submit"
+                        className="px-3 py-1 bg-blue-600 hover:bg-blue-700 rounded-md"
+                      >
+                        Save
+                      </button>
+                      <button
+                        type="button"
+                        onClick={cancelEditing}
+                        className="px-3 py-1 bg-red-600 hover:bg-red-700 rounded-md"
+                      >
+                        Cancel
+                      </button>
+                    </form>
+                  ) : (
+                    <span>{task.Title}</span>
+                  )}
+                </div>
+                {editingId !== task.ID && (
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => startEditing(task.ID, task.Title)}
+                      className="px-3 py-1 bg-indigo-600 hover:bg-indigo-700 rounded-md"
+                    >
+                      Edit
+                    </button>
+                    <button
+                      onClick={() => handleDeleteTask(task.ID)}
+                      className="px-3 py-1 bg-red-600 hover:bg-red-700 rounded-md"
+                    >
+                      Delete
+                    </button>
+                  </div>
+                )}
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="text-center mt-4">No tasks available</p>
+        )}
+        <p className="mt-6 text-center">
+          <Link
+            href="/dashboard/"
+            className="text-blue-500 underline"
+          >
+            Back to Dashboard
+          </Link>
+        </p>
+      </div>
     </div>
   );
 }

@@ -64,7 +64,7 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen bg-gradient-to-r from-purple-900 to-blue-900 text-white flex items-center justify-center">
       <div className="w-full max-w-3xl p-8 bg-black bg-opacity-50 rounded-lg shadow-xl">
-        <h1 className="text-3xl font-bold mb-4 text-center">Attendance Management System</h1>
+        <h1 className="text-3xl font-bold mb-4 text-center">Learning Web Application Development</h1>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
           <Link href="/task/" className="block text-center px-4 py-3 bg-blue-600 hover:bg-blue-700 rounded-md">
               Task Manager

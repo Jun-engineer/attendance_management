@@ -43,6 +43,9 @@ func SetupRoutes(db *gorm.DB) *gin.Engine {
 	registerDocumentRoutes(r)
 	registerChatRoutes(r)
 
+	// Register reservation routes.
+	registerReservationRoutes(r, db)
+
 	return r
 }
 
@@ -103,5 +106,15 @@ func registerChatRoutes(r *gin.Engine) {
 	chat := r.Group("/ws")
 	{
 		chat.GET("/chat", handlers.ChatHandler)
+	}
+}
+
+func registerReservationRoutes(r *gin.Engine, db *gorm.DB) {
+	reservation := r.Group("/api/reservation", middleware.AuthMiddleware())
+	{
+		reservation.GET("/", handlers.GetReservationsHandler(db))
+		reservation.POST("/", handlers.CreateReservationHandler(db))
+		reservation.PUT("/:id", handlers.UpdateReservationHandler(db))
+		reservation.DELETE("/:id", handlers.DeleteReservationHandler(db))
 	}
 }

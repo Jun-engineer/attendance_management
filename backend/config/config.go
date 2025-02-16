@@ -31,7 +31,7 @@ func InitDB() (*gorm.DB, error) {
 		return nil, err
 	}
 
-	if err := db.AutoMigrate(&models.User{}, &models.Task{}, &models.Attendance{}); err != nil {
+	if err := db.AutoMigrate(&models.User{}, &models.Task{}, &models.Attendance{}, &models.Reservation{}); err != nil {
 		return nil, err
 	}
 

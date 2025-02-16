@@ -81,6 +81,9 @@ export default function Dashboard() {
           <Link href="/document/" className="block text-center px-4 py-3 bg-red-600 hover:bg-red-700 rounded-md">
               Document
           </Link>
+          <Link href="/reservation/" className="block text-center px-4 py-3 bg-teal-600 hover:bg-teal-700 rounded-md">
+              Reservation
+          </Link>
           <Link href="/profile/" className="block text-center px-4 py-3 bg-teal-600 hover:bg-teal-700 rounded-md">
               Profile
           </Link>
